@@ -1,6 +1,7 @@
 from tkinter import Tk, Button, Label
 from tkinter import filedialog
 from PIL import Image, ImageTk, ImageDraw
+import os
 
 canvas = None
 minus_counter = 0
@@ -9,36 +10,35 @@ safe_area_visible = False
 blue_square_visible = False
 
 def import_image():
-    try:
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            image = Image.open(file_path)
-            width, height = image.size
+    file_path = filedialog.askopenfilename()
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError("File not found.")
+    
+    image = Image.open(file_path)
+    width, height = image.size
 
-            global canvas, minus_counter, pixel_counter, safe_area_visible, blue_square_visible
-            canvas = Image.new("RGB", (width, height), color="black")
-            canvas.paste(image, (0, 0))
+    global canvas, minus_counter, pixel_counter, safe_area_visible, blue_square_visible
+    canvas = Image.new("RGB", (width, height), color="black")
+    canvas.paste(image, (0, 0))
 
-            update_preview()
+    update_preview()
 
-            shrink_border_button.config(state='normal')
-            expand_border_button.config(state='normal')
-            reset_border_button.config(state='normal')
-            export_button.config(state='normal')
-            plus_bleed_button.config(state='normal')
-            minus_bleed_button.config(state='normal')
-            toggle_safe_area_button.config(state='normal')
+    shrink_border_button.config(state='normal')
+    expand_border_button.config(state='normal')
+    reset_border_button.config(state='normal')
+    export_button.config(state='normal')
+    plus_bleed_button.config(state='normal')
+    minus_bleed_button.config(state='normal')
+    toggle_safe_area_button.config(state='normal')
 
-            minus_counter = 0
-            pixel_counter = 0
-            completion_label.config(text="")
+    minus_counter = 0
+    pixel_counter = 0
+    completion_label.config(text="")
 
-            # Reset the visibility of the red and blue lines
-            safe_area_visible = False
-            blue_square_visible = False
-
-    except Exception as e:
-        completion_label.config(text="Error: Failed to import image.")
+    # Reset the visibility of the red and blue lines
+    safe_area_visible = False
+    blue_square_visible = False
+    
 
 def shrink_border():
     try:
@@ -152,35 +152,15 @@ def enable_minus_bleed_button():
         completion_label.config(text="Error: Failed to enable minus bleed button.")
 
 def export_image():
-    try:
-        file_path = filedialog.asksaveasfilename(defaultextension=".jpg")
-        if file_path:
-            global safe_area_visible, blue_square_visible
-            safe_area_visible = False  # Make the red square invisible
-            blue_square_visible = False  # Make the blue square invisible
+    file_path = filedialog.asksaveasfilename(defaultextension=".jpg")
+    
+    if not os.path.isdir(os.path.dirname(file_path)):
+        raise FileNotFoundError("File not found.")
+    
+    canvas.save(file_path, dpi=(800,800))
+    completion_label.config(text="Operation complete.")
 
-            canvas_with_outline = canvas.copy()
-            if safe_area_visible:
-                draw = ImageDraw.Draw(canvas_with_outline)
-                red_outline_size = (281, 411)  # Set the red outline size to 281x411 pixels
-                preview_size = (336, 468)
-                red_offset = ((preview_size[0] - red_outline_size[0]) // 2, (preview_size[1] - red_outline_size[1]) // 2)
-                draw.rectangle([(red_offset[0], red_offset[1]), (red_offset[0] + red_outline_size[0], red_offset[1] + red_outline_size[1])], outline="red", width=1)
-
-            if blue_square_visible:
-                draw = ImageDraw.Draw(canvas_with_outline)
-                blue_outline_size = (303, 435)  # Set the blue outline size to 303x435 pixels
-                preview_size = (336, 468)
-                blue_offset = ((preview_size[0] - blue_outline_size[0]) // 2, (preview_size[1] - blue_outline_size[1]) // 2)
-                draw.rectangle([(blue_offset[0], blue_offset[1]), (blue_offset[0] + blue_outline_size[0], blue_offset[1] + blue_outline_size[1])], outline="blue", width=1)
-
-            canvas_with_outline.save(file_path)
-            completion_label.config(text="Operation complete.")
-
-            update_preview()  # Update the preview
-
-    except Exception as e:
-        completion_label.config(text="Error: Failed to export image.")
+    update_preview()  # Update the preview
 
 def update_preview():
     try:
