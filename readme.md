@@ -1,6 +1,3 @@
-### Created by u/Incert_Coin_50
-
-
 ## What is this?
 This program is a GUI implementation to add and remove bleed from images. Intended use is to add bleed to cards for printing at [MPC](https://www.makeplayingcards.com/)
 
